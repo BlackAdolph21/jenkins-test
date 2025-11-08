@@ -1,30 +1,31 @@
 pipeline {
     agent any
     environment {
-        DEPLOY_DIR = '/var/www/jenkins-demo'
+        IMAGE_NAME = "jenkins-demo"
+        CONTAINER_NAME = "jenkins-demo-container"
     }
     stages {
-        stage('Build') {
+        stage('Checkout') {
             steps {
-                echo 'Building the application...'
-                sh 'npm install'
+                git branch: 'main', url: 'https://github.com/<your-username>/jenkins-test.git'
             }
         }
-        stage('Test') {
+        stage('Build Docker Image') {
             steps {
-                echo 'Running tests...'
-                sh 'npm test'
+                echo 'Building Docker image...'
+                sh 'docker build -t $IMAGE_NAME .'
             }
         }
-        stage('Deploy') {
+        stage('Stop Old Container') {
             steps {
-                echo 'Deploying the app...'
-                sh '''
-                    sudo mkdir -p $DEPLOY_DIR
-                    sudo cp -r * $DEPLOY_DIR/
-                    sudo pkill node || true
-                    nohup node $DEPLOY_DIR/server.js > app.log 2>&1 &
-                '''
+                echo 'Stopping old container if it exists...'
+                sh 'docker stop $CONTAINER_NAME || true && docker rm $CONTAINER_NAME || true'
+            }
+        }
+        stage('Run New Container') {
+            steps {
+                echo 'Running new container...'
+                sh 'docker run -d -p 3000:3000 --name $CONTAINER_NAME $IMAGE_NAME'
             }
         }
     }
