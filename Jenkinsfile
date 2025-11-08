@@ -7,7 +7,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/BlackAdolph21/jenkins-test.git'
+                git branch: 'main', url: 'https://github.com/<your-username>/jenkins-test.git'
             }
         }
         stage('Build Docker Image') {
@@ -19,7 +19,14 @@ pipeline {
         stage('Stop Old Container') {
             steps {
                 echo 'Stopping old container if it exists...'
-                sh 'docker stop $CONTAINER_NAME || true && docker rm $CONTAINER_NAME || true'
+                sh 'docker stop $CONTAINER_NAME || true'
+                sh 'docker rm $CONTAINER_NAME || true'
+            }
+        }
+        stage('Free Port 3000') {
+            steps {
+                echo 'Killing any process using port 3000...'
+                sh 'sudo lsof -ti :3000 | xargs -r sudo kill || true'
             }
         }
         stage('Run New Container') {
