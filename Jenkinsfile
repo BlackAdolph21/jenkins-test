@@ -7,7 +7,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/BlackAdolph21/jenkins-test.git'
+                git branch: 'main', url: 'https://github.com/<your-username>/jenkins-test.git'
             }
         }
         stage('Build Docker Image') {
@@ -21,6 +21,12 @@ pipeline {
                 echo 'Stopping old container if it exists...'
                 sh 'docker stop $CONTAINER_NAME || true'
                 sh 'docker rm $CONTAINER_NAME || true'
+            }
+        }
+        stage('Test Sudo') {
+            steps {
+                echo 'Testing sudo access for lsof...'
+                sh 'sudo lsof -i :3000 || echo "Permission denied"'
             }
         }
         stage('Free Port 3000') {
